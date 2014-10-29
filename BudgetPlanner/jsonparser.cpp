@@ -6,6 +6,8 @@
 #include "QJsonDocument"
 #include "QEventLoop"
 
+// author: Adam Stevenson 
+
 JsonParser::JsonParser(QMainWindow *parent) : QMainWindow(parent)
 {
     // default constructor
