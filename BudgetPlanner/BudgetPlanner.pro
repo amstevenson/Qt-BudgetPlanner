@@ -16,14 +16,26 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     jsonparser.cpp \
-    signupwindow.cpp
+    signupwindow.cpp \
+    accountsetupwindow.cpp \
+    accountbudgetwindow.cpp \
+    operations.cpp \
+    tableoperations.cpp
 
 HEADERS  += mainwindow.h \
     jsonparser.h \
-    signupwindow.h
+    signupwindow.h \
+    accountsetupwindow.h \
+    accountbudgetwindow.h \
+    operations.h \
+    tableoperations.h
 
 FORMS    += mainwindow.ui \
-    signupwindow.ui
+    accountsetupwindow.ui \
+    signupwindow.ui \
+    accountbudgetwindow.ui
 
 RESOURCES += \
     Extras.qrc
+
+OTHER_FILES +=

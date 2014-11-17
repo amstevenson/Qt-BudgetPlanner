@@ -6,6 +6,7 @@
 #include "qjsonobject.h"
 #include "qjsonarray.h"
 #include "qstringlist.h"
+#include "operations.h"
 
 SignupWindow::SignupWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -33,27 +34,14 @@ void SignupWindow::registerNewAccount()
     initialPassword = ui->txtPasswordInitial->toPlainText();
     initialPasswordRepeat = ui->txtPasswordRepeat->toPlainText();
 
-    // check to see if the user has left any textboxes empty or not
     if(initialEmail.isEmpty() || initialEmailRepeat.isEmpty() || initialPassword.isEmpty() || initialPasswordRepeat.isEmpty())
     {
-        QMessageBox msgBox;
-        msgBox.setText("Your account cannot be created");
-        msgBox.setInformativeText("You have one or more fields that currently contain no value.");
-        msgBox.setStandardButtons(QMessageBox::Ok);
-        msgBox.setDefaultButton(QMessageBox::Ok);
-        int res = msgBox.exec();
-
-        switch(res){
-
-            case QMessageBox::Ok:
-              //  this->close();
-
-            default:
-                break;
-        }
+        QMessageBox::warning(this, tr("Qt Budget Planner"),
+                            tr("Your account cannot be created.\n\n"
+                            "You have one or more fields that currently contain no value."),
+                            QMessageBox::Ok);
     }
-    // check to see if the email addresses and passwords match
-    // as well as ensuring that the size of both is above three for now (until I find a regular expression to check the email address)
+
     if(initialEmail == initialEmailRepeat && initialPassword == initialPasswordRepeat)
         if(initialEmail.size() > 3 && initialEmailRepeat.size() > 3 && initialPassword.size() > 3 && initialPasswordRepeat.size() > 3)
         {
@@ -79,32 +67,32 @@ void SignupWindow::registerNewAccount()
             // convert to a jsonArray and build stringLists to store the data
             QJsonArray postDataToArray = postResponse["response"].toArray();
 
-            QStringList success, message;
+            int success;
+            QString message;
 
             // will return a success and message value for the insert
             foreach (const QJsonValue & value, postDataToArray)
             {
-                 QJsonObject obj2 = value.toObject();
+                QJsonObject dbInformation = value.toObject();
 
-                 success.append(obj2["success"].toString());
-                 message.append(obj2["message"].toString());
-
+                success = dbInformation["success"].toInt();
+                message = dbInformation["message"].toString();
             }
 
-            //******************************************************************//
-            //                   Display the results to the user                //
-            //******************************************************************//
-            QMessageBox msgBox;
-            msgBox.setInformativeText(message.at(0));
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.setDefaultButton(QMessageBox::Ok);
-            int res = msgBox.exec();
+            Operations *o = new Operations(this);
 
-            switch(res){
-
-                case QMessageBox::Ok:
-                    // after confirming message, close the form
+            switch(success)
+            {
+                case 0:
+                    o->displayInformativeMessage("Qt Budget Planner \n", message);
                     this->close();
+                    break;
+
+                case 1:        
+                    o->displayInformativeMessage("Qt Budget Planner \n", message);
+                    this->close();
+                    break;
+
                 default:
                     break;
             }
@@ -112,38 +100,17 @@ void SignupWindow::registerNewAccount()
         }
         else
         {
-            QMessageBox msgBox;
-            msgBox.setText("Your account cannot be created");
-            msgBox.setInformativeText("Your passwords need to be atleast 3 or more characters long, and your email addresses need to be valid.");
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.setDefaultButton(QMessageBox::Ok);
-            int res = msgBox.exec();
-
-            switch(res){
-
-                case QMessageBox::Ok:
-
-
-                default:
-                    break;
-            }
+            QMessageBox::warning(this, tr("Qt Budget Planner"),
+                                tr("Your account cannot be created.\n\n"
+                                "Your passwords need to be atleast 3 or more characters long,"
+                                   " and your email addresses need to be valid."),
+                                QMessageBox::Ok);
         }
     else
-        {
-            QMessageBox msgBox;
-            msgBox.setText("Your account cannot be created");
-            msgBox.setInformativeText("Your email addresses and passwords need to match");
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            msgBox.setDefaultButton(QMessageBox::Ok);
-            int res = msgBox.exec();
-
-            switch(res){
-
-                case QMessageBox::Ok:
-
-
-                default:
-                    break;
-            }
+        {  
+            QMessageBox::warning(this, tr("Qt Budget Planner"),
+                                tr("Your account cannot be created.\n\n"
+                                "Your email addresses and passwords need to match"),
+                                QMessageBox::Ok);
         }
 }

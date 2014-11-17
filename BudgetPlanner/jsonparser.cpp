@@ -6,8 +6,6 @@
 #include "QJsonDocument"
 #include "QEventLoop"
 
-// author: Adam Stevenson 
-
 JsonParser::JsonParser(QMainWindow *parent) : QMainWindow(parent)
 {
     // default constructor
@@ -40,6 +38,7 @@ QJsonObject JsonParser::makeHTTPRequest(QString url, QString method, QMap<QStrin
         if(doc.isObject() && err.error ==  QJsonParseError::NoError)
             obj = doc.object();
 
+        delete manager;
         return obj;
 
     } else if(method == "POST")
@@ -85,6 +84,7 @@ QJsonObject JsonParser::makeHTTPRequest(QString url, QString method, QMap<QStrin
             obj = doc.object();
 
         // return a jsonobject with "success" and "message" values
+        delete manager;
         return obj;
 
     }
