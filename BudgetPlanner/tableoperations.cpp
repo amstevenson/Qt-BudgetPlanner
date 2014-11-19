@@ -13,9 +13,11 @@ QStringList TableOperations::getRowInformation(QStandardItemModel *tableModel, i
 
     for(int i = 0; i < tableModel->rowCount(); i++)
     {
-        // income type
         QModelIndex index = tableModel->index(i,rowNumber);
-        rowInformation.append(tableModel->data(index).toString());
+
+        // add information to the QStringList - if not null...
+        if(tableModel->data(index).isNull() != true)
+            rowInformation.append(tableModel->data(index).toString());
     }
 
     return rowInformation;

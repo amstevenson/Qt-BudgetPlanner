@@ -1,6 +1,7 @@
 #include "accountsetupwindow.h"
 #include "ui_accountsetupwindow.h"
 #include <QInputDialog>
+#include "jsonparser.h"
 
 AccountSetupWindow::AccountSetupWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -37,6 +38,13 @@ AccountSetupWindow::AccountSetupWindow(QWidget *parent) :
     ui->lblExpenseAmount->setVisible(false);
 }
 
+/*
+ * If the next button is pressed, store the information about the user into the QMap StringList that is linked to it.
+ * If the finish button is pressed however, we send a call to the method responsible for sending the information to the database,
+ * which results in the end of the registration steps.
+ *
+ * @see getRowInformation in class tableoperations: adds all information from each row, per column submitted.
+ * */
 void AccountSetupWindow::getTableValues()
 {
     if(m_model->rowCount() == 0){} // do nothing
@@ -81,10 +89,74 @@ void AccountSetupWindow::getTableValues()
 
             // if we are progressing to the "budget" page, and already have values existing in the system, retrieve them and display
             m_accountRegistrationState = tableOp->getState("FINISH");
-            addAllTableItems();
+            addAllTableItems(); // retrieve the income information - budgets are based on income items? - I believe so...
+                                // In the button method, if it is "finish" we dont get buttons back
 
             // second step is completed, move on to third
             m_accountRegistrationState = tableOp->getState("BUDGET");
+            break;
+
+        case TABLESECTION::BUDGET:
+
+            if(m_userInformation.value("income_types").isEmpty() != true && m_userInformation.value("income_type_amounts").isEmpty() != true)
+            {
+                m_userInformation.remove("income_types");
+                m_userInformation.remove("income_type_amounts");
+            }
+
+            m_userInformation.insert("income_types", tableOp->getRowInformation(m_model,0));
+            m_userInformation.insert("income_type_amounts", tableOp->getRowInformation(m_model,1));
+            m_userInformation.insert("income_budget_amounts", tableOp->getRowInformation(m_model,2));
+
+            // For each QStringList we have stored in our QMap, we need to add a row to the database that pertains to the
+            // name of the category, the amount attributed to it, and the type of item.
+            if(m_userInformation.value("income_types").isEmpty() || m_userInformation.value("income_type_amounts").isEmpty()){
+                // do nothing
+            }
+            else
+            {
+                // add all of the rows to the database: income, expenses and budget.
+                JsonParser jsonParser = new JsonParser(this);
+
+                // initialise QMap responsible for query
+                QMap<QString, QString> categoryItem;
+
+                // add to database - income items
+                for(int i = 0; i < m_userInformation.value("income_types").size(); i++)
+                {
+                    categoryItem.insert("user_id", m_userID);
+                    categoryItem.insert("category_name", m_userInformation.value("income_types").at(i));
+                    categoryItem.insert("category_amount", m_userInformation.value("income_type_amounts").at(i));
+                    categoryItem.insert("category_type", "income");
+                    categoryItem.insert("category_budget", m_userInformation.value("income_budget_amounts").at(i));
+
+                    // Create and send POST query
+                    jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php","POST",categoryItem);
+                    categoryItem.clear();
+                }
+
+                // add to database - expense items
+                for(int i = 0; i < m_userInformation.value("expense_types").size(); i++)
+                {
+                    categoryItem.insert("user_id", m_userID);
+                    categoryItem.insert("category_name", m_userInformation.value("expense_types").at(i));
+                    categoryItem.insert("category_amount", m_userInformation.value("expense_type_amounts").at(i));
+                    categoryItem.insert("category_type", "expense");
+                    categoryItem.insert("category_budget", "0");
+
+                    // Create and send POST query
+                    jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php","POST",categoryItem);
+                    categoryItem.clear();
+                }
+
+                // update the user in the database and move to the account budget form.
+                categoryItem.insert("user_id", m_userID);
+                jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/user_registration_complete.php","POST",categoryItem);
+
+
+            }
+
+
             break;
 
         default:
@@ -95,6 +167,10 @@ void AccountSetupWindow::getTableValues()
     updateLabels(); // we are on the next step - so we need new labels
 }
 
+/*
+ * If the previous button is pressed, retrieve information relating to the user for the step before.
+ *
+ * */
 void AccountSetupWindow::addAllTableItems()
 {
     m_model->clear();       // clear first, then add more later on
@@ -136,8 +212,8 @@ void AccountSetupWindow::addAllTableItems()
             break;
 
         case TABLESECTION::BUDGET:
-            tableOp->setRowInformation(m_model, m_userInformation.value("expense_types"), 0);
-            tableOp->setRowInformation(m_model, m_userInformation.value("expense_type_amounts"), 1);
+            tableOp->setRowInformation(m_model, m_userInformation.value("income_types"), 0);
+            tableOp->setRowInformation(m_model, m_userInformation.value("income_type_amounts"), 1);
             break;
        default :
             break;
@@ -239,6 +315,7 @@ void AccountSetupWindow::updateLabels()
         ui->lblDetails->setText("Please provide an a budget total for each expense.\n"
                                 "You can refer to the income amount towards the bottom of the screen.");
 
+        // Add up the totals for the amounts held in both income and expenses, and then display
         int totalIncome = tableOp->getUserBudgetAmount(m_userInformation.value("income_type_amounts"));
         int totalExpenses = tableOp->getUserBudgetAmount(m_userInformation.value("expense_type_amounts"));
         int totalAmount = totalIncome - totalExpenses;
@@ -250,6 +327,12 @@ void AccountSetupWindow::updateLabels()
     }
 }
 
+/*
+ * This method is concerned with: the layout of the columns, and their sizes;
+ * in addition to the default items to be displayed for each state are centralised within the table
+ * with the exception of the "budget" state, which requires no default item - although the
+ * third row is centralised.
+ * */
 void AccountSetupWindow::updateTableSettings()
 {
     switch(m_accountRegistrationState)
@@ -264,7 +347,13 @@ void AccountSetupWindow::updateTableSettings()
         break;
     case TABLESECTION::BUDGET:
         m_columnHeaders.clear();
-        m_columnHeaders << tr("Category") << tr("Expense Amount") << tr("Budget Amount");
+        m_columnHeaders << tr("Category") << tr("Income Amount") << tr("Budget Amount");
+
+        // in the next part of the method (column headers), since we are not going to be adding a default item
+        // as a result of keeping the same information from before, we need to centralise the third
+        // columns rows here.
+        QModelIndex index = m_model->index(0,2);
+        m_model->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
         break;
     }
 

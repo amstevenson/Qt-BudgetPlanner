@@ -8,7 +8,7 @@
 #include <QtGui>
 #include <QDebug>
 #include <QSignalMapper>
-#include <QMultiMap>
+#include <QMap>
 #include "tableoperations.h"
 
 namespace Ui {

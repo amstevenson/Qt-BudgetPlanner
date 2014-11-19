@@ -149,9 +149,9 @@
    <widget class="QLabel" name="lblExpense">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>180</x>
       <y>700</y>
-      <width>191</width>
+      <width>221</width>
       <height>20</height>
      </rect>
     </property>
@@ -161,7 +161,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Total Minus Expenses: (£)</string>
+     <string>Money left to budget with: (£)</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

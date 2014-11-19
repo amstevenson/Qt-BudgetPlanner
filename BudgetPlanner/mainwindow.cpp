@@ -56,6 +56,8 @@ void MainWindow::createNewWindow(QString windowName)
             // convert to a jsonArray and build stringLists to store the data
             QJsonArray postDataToArray = postResponse["response"].toArray();
 
+            // certain ints are QStrings: this is because the database returns them as strings, even though
+            // they are specified as numbers within the database. A shame really.
             int success, userRegistered;
             QString message, userID;
 
@@ -68,12 +70,16 @@ void MainWindow::createNewWindow(QString windowName)
                 userRegistered  = dbInformation["user_registered"].toInt();
                 success         = dbInformation["success"].toInt();
                 message         = dbInformation["message"].toString();
+
+                 qDebug() << dbInformation["'user_registered'"].toInt();
             }
 
             // initialisation of classes
             Operations *operations = new Operations(this);
             AccountSetupWindow *accountSetup = new AccountSetupWindow();
             AccountBudgetWindow *accountBudget = new AccountBudgetWindow();
+
+
 
             // validate login
             switch(success)
@@ -83,6 +89,7 @@ void MainWindow::createNewWindow(QString windowName)
                     break;
 
                 case 1: // login successful
+
                     switch(userRegistered)
                     {
                         case 0: // user has NOT registered before
