@@ -6,11 +6,13 @@
 #include <QModelIndex>
 #include "qstringlist.h"
 
-// Enum to determine the state of the setup ui form
+// namespace for the Enumerators that determine the state of the account setup ui table
+QT_BEGIN_NAMESPACE
 namespace TABLESECTION
 {
     enum state { INCOME, EXPENSES, BUDGET, FINISH };
 }
+QT_END_NAMESPACE
 
 class TableOperations : public QMainWindow
 {
@@ -18,12 +20,14 @@ public:
     TableOperations(QMainWindow *parent);
 
     QStringList incomeType;
-
-    void addTableItemFromList(QStandardItemModel *, QStringList);
-    int getUserBudgetAmount(QStringList);
     QStringList getRowInformation(QStandardItemModel *, int);
+
+    bool checkForNullRows(QStandardItemModel *, int);
+    int getUserBudgetAmount(QStringList);
+    void addTableItemFromList(QStandardItemModel *, QStringList);
     void setRowInformation(QStandardItemModel *, QStringList, int);
 
+    // Enum to control the state of the account setup form
     TABLESECTION::state getState(QString);
 };
 

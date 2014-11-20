@@ -1,6 +1,7 @@
 #include "tableoperations.h"
 #include "qdebug.h"
 #include "qinputdialog.h"
+#include "qmessagebox.h"
 
 TableOperations::TableOperations(QMainWindow *parent) : QMainWindow(parent)
 {
@@ -21,6 +22,33 @@ QStringList TableOperations::getRowInformation(QStandardItemModel *tableModel, i
     }
 
     return rowInformation;
+}
+
+bool TableOperations::checkForNullRows(QStandardItemModel *tableModel, int numberOfRows)
+{
+    bool isRowEmpty = false;
+
+    for(int i = 0; i < tableModel->rowCount(); i++)
+    {
+        for(int j = 0; j < numberOfRows; j++)
+        {
+            QModelIndex columnData = tableModel->index(i, j);
+
+            if(tableModel->data(columnData).isNull())
+            {
+                isRowEmpty = true;
+
+                QMessageBox::warning(this, tr("My Application"),
+                                    tr("An empty row was detected. \n\n"
+                                    "Please check all of the rows and ensure that any empty rows are filled"),
+                                    QMessageBox::Ok);
+            }
+            else
+                isRowEmpty = false;
+        }
+    }
+
+    return isRowEmpty;
 }
 
 int TableOperations::getUserBudgetAmount(QStringList userBudgetAmount)

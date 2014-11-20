@@ -58,8 +58,8 @@ void MainWindow::createNewWindow(QString windowName)
 
             // certain ints are QStrings: this is because the database returns them as strings, even though
             // they are specified as numbers within the database. A shame really.
-            int success, userRegistered;
-            QString message, userID;
+            int success;
+            QString message, userID, userRegistered;
 
             // will return a success and message value for the insert
             foreach (const QJsonValue & value, postDataToArray)
@@ -67,19 +67,16 @@ void MainWindow::createNewWindow(QString windowName)
                 QJsonObject dbInformation = value.toObject();
 
                 userID          = dbInformation["user_id"].toString();
-                userRegistered  = dbInformation["user_registered"].toInt();
+                userRegistered  = dbInformation["user_registered"].toString();
                 success         = dbInformation["success"].toInt();
                 message         = dbInformation["message"].toString();
 
-                 qDebug() << dbInformation["'user_registered'"].toInt();
             }
 
             // initialisation of classes
             Operations *operations = new Operations(this);
             AccountSetupWindow *accountSetup = new AccountSetupWindow();
             AccountBudgetWindow *accountBudget = new AccountBudgetWindow();
-
-
 
             // validate login
             switch(success)
@@ -90,21 +87,18 @@ void MainWindow::createNewWindow(QString windowName)
 
                 case 1: // login successful
 
-                    switch(userRegistered)
+                    if(userRegistered == "0")
                     {
-                        case 0: // user has NOT registered before
-                            accountSetup->setUserID(userID);
-                            accountSetup->show();
-                            this->close();
-                            break;
-
-                        case 1: // user has registered before
-                            accountBudget->show();
-                            this->close();
-                            break;
-
-                        default:
-                            break;
+                        // go to registration form
+                        accountSetup->setUserID(userID);
+                        accountSetup->show();
+                        this->close();
+                    }
+                    else if(userRegistered == "1")
+                    {
+                        // go to summary form
+                        accountBudget->show();
+                        this->close();
                     }
                     break;
 

@@ -182,7 +182,7 @@
      </font>
     </property>
     <property name="text">
-     <string>totalIncomeAmount</string>
+     <string>totalExpenseAmount</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

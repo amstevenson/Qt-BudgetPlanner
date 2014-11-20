@@ -10,14 +10,20 @@ class JsonParser : public QMainWindow
 {
     Q_OBJECT
 public:
+    // Default constructor
     JsonParser(QMainWindow *parent);
+
+    // The http request either gets, inserts, or changes information in the database.
     QJsonObject makeHTTPRequest(QString, QString, QMap<QString, QString>);
 
 public slots:
 
 private:
 
+    // wait for finish works in conjunction with makeHTTPRequest.
     void waitForFinish(QNetworkReply *reply);
+
+    // To allow us to perform networking operations.
     QNetworkAccessManager *manager;
 };
 

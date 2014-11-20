@@ -1,7 +1,5 @@
 #include "accountsetupwindow.h"
 #include "ui_accountsetupwindow.h"
-#include <QInputDialog>
-#include "jsonparser.h"
 
 AccountSetupWindow::AccountSetupWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -9,7 +7,7 @@ AccountSetupWindow::AccountSetupWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // table + user operations
+    // table and user operations
     tableOp = new TableOperations(this);
 
     // create the table model and set
@@ -39,124 +37,195 @@ AccountSetupWindow::AccountSetupWindow(QWidget *parent) :
 }
 
 /*
- * If the next button is pressed, store the information about the user into the QMap StringList that is linked to it.
- * If the finish button is pressed however, we send a call to the method responsible for sending the information to the database,
- * which results in the end of the registration steps.
+ * When the 'next' buttons connect signal is triggered, this method stores the information about the user
+ * into the QMap StringList that is linked to it. If the finish button is pressed however, we send a call
+ * to the method responsible for sending the information to the database, which results in the end of the
+ * registration steps.
  *
- * @see getRowInformation in class tableoperations: adds all information from each row, per column submitted.
+ * @see getState          : retrieve a specific state
+ * @see checkForNullRows  : checks to see if any cells on a table are null or not.
+ * @see getRowInformation : adds all information from each row, per column submitted.
+ * @see makeHTTPRequest   : performs a database query based on the script and data passed.
+ * @see updateLabels      : once a step has been finished, load the labels specific to the new specified state.
  * */
 void AccountSetupWindow::getTableValues()
 {
-    if(m_model->rowCount() == 0){} // do nothing
+    // set a boolean to check if any rows are empty
+    bool rowEmpty = false;
+
+    // check to see if there are any rows
+    if(m_model->rowCount() == 0){
+
+        // do nothing
+        QMessageBox::warning(this, tr("My Application"),
+                            tr("Empty table detected.\n\n"
+                            "If you have no income or expenses, please add an item and enter 0 as a value!"),
+                            QMessageBox::Ok);
+    }
     else
     {
+        // if there are rows, perform the data gathering that is specific
+        // for each table state: income, expenses and budget.
         switch(m_accountRegistrationState)
         {
         case TABLESECTION::INCOME:
-            if(m_userInformation.value("income_types").isEmpty() != true && m_userInformation.value("income_type_amounts").isEmpty() != true)
+
+            //-----------------------------------------------------------------------------------------------//
+            //                                      INCOME STATE                                             //
+            //-----------------------------------------------------------------------------------------------//
+            // check for any empty rows
+            rowEmpty = tableOp->checkForNullRows(m_model, 2);
+
+            if(rowEmpty == false)
             {
-                m_userInformation.remove("income_types");
-                m_userInformation.remove("income_type_amounts");
+                // If populated already, remove information (for when previous button is pressed)
+                if(m_userInformation.value("income_types").isEmpty() != true
+                        && m_userInformation.value("income_type_amounts").isEmpty() != true)
+                {
+                    m_userInformation.remove("income_types");
+                    m_userInformation.remove("income_type_amounts");
+                }
+
+                // Retrive the information from the table model and store it in the specific StringList within the QMap
+                m_userInformation.insert("income_types", tableOp->getRowInformation(m_model,0));
+                m_userInformation.insert("income_type_amounts", tableOp->getRowInformation(m_model,1));
+
+                m_model->clear();
+
+                ui->btnPrevious->setVisible(true);
+
+                // If values already exist in the system, the addAllTableItems method will retrieve them.
+                // Needed when the user goes back from the third stage, to the first, and then progresses to the second.
+                m_accountRegistrationState = tableOp->getState("BUDGET");
+                addAllTableItems();
+
+                // first step is completed, move on to second
+                m_accountRegistrationState = tableOp->getState("EXPENSES");
             }
-
-            m_userInformation.insert("income_types", tableOp->getRowInformation(m_model,0));
-            m_userInformation.insert("income_type_amounts", tableOp->getRowInformation(m_model,1));
-
-            m_model->clear();
-
-            ui->btnPrevious->setVisible(true);
-
-            // if we are progressing to the "expenses" page, and already have values existing in the system, retrieve them and display
-            m_accountRegistrationState = tableOp->getState("BUDGET");
-            addAllTableItems();
-
-            // first step is completed, move on to second
-            m_accountRegistrationState = tableOp->getState("EXPENSES");
 
             break;
 
         case TABLESECTION::EXPENSES:
-            if(m_userInformation.value("expense_types").isEmpty() != true && m_userInformation.value("expense_type_amounts").isEmpty() != true)
+
+            //-----------------------------------------------------------------------------------------------//
+            //                                      EXPENSES STATE                                           //
+            //-----------------------------------------------------------------------------------------------//
+            // check for any empty rows
+            rowEmpty = tableOp->checkForNullRows(m_model, 2);
+
+            if(rowEmpty == false)
             {
-                m_userInformation.remove("expense_types");
-                m_userInformation.remove("expense_type_amounts");
+                // If populated already, remove information (for when previous button is pressed)
+                if(m_userInformation.value("expense_types").isEmpty() != true
+                        && m_userInformation.value("expense_type_amounts").isEmpty() != true)
+                {
+                    m_userInformation.remove("expense_types");
+                    m_userInformation.remove("expense_type_amounts");
+                }
+
+                // Retrive the information from the table model and store it in the specific StringList within the QMap
+                m_userInformation.insert("expense_types", tableOp->getRowInformation(m_model,0));
+                m_userInformation.insert("expense_type_amounts", tableOp->getRowInformation(m_model,1));
+
+                m_model->clear();
+
+                // if we are progressing to the "budget" page, and already have values existing in the system, retrieve them and display
+                m_accountRegistrationState = tableOp->getState("FINISH");
+                addAllTableItems(); // Retrieve the income information - budgets are based on income items (or so I believe).
+                                    // If, when in the addAllTableItems the state is 'FINISH', the 'delete' buttons are not created which allows us to
+                                    // make room for the "budget" column, where the user can enter that information for each income item.
+
+                // second step is completed, move on to third
+                m_accountRegistrationState = tableOp->getState("BUDGET");
             }
 
-            m_userInformation.insert("expense_types", tableOp->getRowInformation(m_model,0));
-            m_userInformation.insert("expense_type_amounts", tableOp->getRowInformation(m_model,1));
-
-            m_model->clear();
-
-            // if we are progressing to the "budget" page, and already have values existing in the system, retrieve them and display
-            m_accountRegistrationState = tableOp->getState("FINISH");
-            addAllTableItems(); // retrieve the income information - budgets are based on income items? - I believe so...
-                                // In the button method, if it is "finish" we dont get buttons back
-
-            // second step is completed, move on to third
-            m_accountRegistrationState = tableOp->getState("BUDGET");
             break;
 
         case TABLESECTION::BUDGET:
 
-            if(m_userInformation.value("income_types").isEmpty() != true && m_userInformation.value("income_type_amounts").isEmpty() != true)
+            //-----------------------------------------------------------------------------------------------//
+            //                                      BUDGET STATE                                             //
+            //-----------------------------------------------------------------------------------------------//
+            // check for any empty rows - three instead of two
+            rowEmpty = tableOp->checkForNullRows(m_model, 3);
+
+            if(rowEmpty == false)
             {
-                m_userInformation.remove("income_types");
-                m_userInformation.remove("income_type_amounts");
-            }
-
-            m_userInformation.insert("income_types", tableOp->getRowInformation(m_model,0));
-            m_userInformation.insert("income_type_amounts", tableOp->getRowInformation(m_model,1));
-            m_userInformation.insert("income_budget_amounts", tableOp->getRowInformation(m_model,2));
-
-            // For each QStringList we have stored in our QMap, we need to add a row to the database that pertains to the
-            // name of the category, the amount attributed to it, and the type of item.
-            if(m_userInformation.value("income_types").isEmpty() || m_userInformation.value("income_type_amounts").isEmpty()){
-                // do nothing
-            }
-            else
-            {
-                // add all of the rows to the database: income, expenses and budget.
-                JsonParser jsonParser = new JsonParser(this);
-
-                // initialise QMap responsible for query
-                QMap<QString, QString> categoryItem;
-
-                // add to database - income items
-                for(int i = 0; i < m_userInformation.value("income_types").size(); i++)
+                // If populated already, remove information (for when previous button is pressed)
+                if(m_userInformation.value("income_types").isEmpty() != true && m_userInformation.value("income_type_amounts").isEmpty() != true)
                 {
-                    categoryItem.insert("user_id", m_userID);
-                    categoryItem.insert("category_name", m_userInformation.value("income_types").at(i));
-                    categoryItem.insert("category_amount", m_userInformation.value("income_type_amounts").at(i));
-                    categoryItem.insert("category_type", "income");
-                    categoryItem.insert("category_budget", m_userInformation.value("income_budget_amounts").at(i));
-
-                    // Create and send POST query
-                    jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php","POST",categoryItem);
-                    categoryItem.clear();
+                    m_userInformation.remove("income_types");
+                    m_userInformation.remove("income_type_amounts");
                 }
 
-                // add to database - expense items
-                for(int i = 0; i < m_userInformation.value("expense_types").size(); i++)
-                {
-                    categoryItem.insert("user_id", m_userID);
-                    categoryItem.insert("category_name", m_userInformation.value("expense_types").at(i));
-                    categoryItem.insert("category_amount", m_userInformation.value("expense_type_amounts").at(i));
-                    categoryItem.insert("category_type", "expense");
-                    categoryItem.insert("category_budget", "0");
+                // Retrive the information from the table model and store it in the specific StringList within the QMap
+                m_userInformation.insert("income_types", tableOp->getRowInformation(m_model,0));
+                m_userInformation.insert("income_type_amounts", tableOp->getRowInformation(m_model,1));
+                m_userInformation.insert("income_budget_amounts", tableOp->getRowInformation(m_model,2));
 
-                    // Create and send POST query
-                    jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php","POST",categoryItem);
-                    categoryItem.clear();
+                if(m_userInformation.value("income_types").isEmpty() || m_userInformation.value("income_type_amounts").isEmpty()
+                        || m_userInformation.value("income_budget_amounts").isEmpty()){
+                    // do nothing
                 }
+                else
+                {
+                    // If the user ends up with a budget amount of less than 0, then they are probably doing something wrong, or they
+                    // may want to create an unrealistic budget. At any rate, validation seems best for this.
+                    int ExpenseAmountLeft = ui->lblExpenseAmount->text().toInt();
 
-                // update the user in the database and move to the account budget form.
-                categoryItem.insert("user_id", m_userID);
-                jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/user_registration_complete.php","POST",categoryItem);
+                    if(ExpenseAmountLeft >= 0)
+                    {
+                        // Add all of the rows to the database: income, expenses and budget.
+                        JsonParser jsonParser = new JsonParser(this);
 
+                        // Initialise QMap responsible for query
+                        QMap<QString, QString> categoryItem;
 
+                        // Add to database - income items
+                        for(int i = 0; i < m_userInformation.value("income_types").size(); i++)
+                        {
+                            categoryItem.insert("user_id", m_userID);
+                            categoryItem.insert("category_name", m_userInformation.value("income_types").at(i));
+                            categoryItem.insert("category_amount", m_userInformation.value("income_type_amounts").at(i));
+                            categoryItem.insert("category_type", "income");
+                            categoryItem.insert("category_budget", m_userInformation.value("income_budget_amounts").at(i));
+
+                            // Create and send POST query
+                            jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php",
+                                                       "POST",categoryItem);
+                            categoryItem.clear();
+                        }
+
+                        // Add to database - expense items
+                        for(int i = 0; i < m_userInformation.value("expense_types").size(); i++)
+                        {
+                            categoryItem.insert("user_id", m_userID);
+                            categoryItem.insert("category_name", m_userInformation.value("expense_types").at(i));
+                            categoryItem.insert("category_amount", m_userInformation.value("expense_type_amounts").at(i));
+                            categoryItem.insert("category_type", "expense");
+                            categoryItem.insert("category_budget", "0");
+
+                            // Create and send POST query
+                            jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php",
+                                                       "POST",categoryItem);
+                            categoryItem.clear();
+                        }
+
+                        // Update the user in the database and move to the account budget form.
+                        categoryItem.insert("user_id", m_userID);
+                        jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/user_registration_complete.php",
+                                                   "POST",categoryItem);
+                    }
+                    else
+                    {
+                        // If the budget amount comes to < 0
+                        QMessageBox::warning(this, tr("My Application"),
+                                            tr("Error finalising registration.\n\n"
+                                            "Make sure to budget correctly! Ensure that your income outweighs the expenses!"),
+                                            QMessageBox::Ok);
+                    }
+                }
             }
-
-
             break;
 
         default:

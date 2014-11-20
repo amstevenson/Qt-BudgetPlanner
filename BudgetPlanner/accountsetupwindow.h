@@ -9,7 +9,9 @@
 #include <QDebug>
 #include <QSignalMapper>
 #include <QMap>
+#include <QInputDialog>
 #include "tableoperations.h"
+#include "jsonparser.h"
 
 namespace Ui {
 class AccountSetupWindow;
@@ -35,22 +37,20 @@ private slots:
 private:
     Ui::AccountSetupWindow *ui;
 
+    QMap<QString, QStringList> m_userInformation;
+    QStringList m_columnHeaders;
+    QStandardItemModel *m_model;
+    QStandardItemModel getTableIndexItem(QStringList);
     QString m_userID;
 
-    QMap<QString, QStringList> m_userInformation;
+    // @see tableOperations.h /.cpp
+    TableOperations *tableOp;
 
-    QStringList m_columnHeaders;
-
-    QStandardItemModel *m_model;
+    // Enum to control the state of the account setup form
+    TABLESECTION::state m_accountRegistrationState;
 
     void updateTableSettings();
     void updateTableButtons();
-
-    QStandardItemModel getTableIndexItem(QStringList);
-
-    TableOperations *tableOp;
-
-    TABLESECTION::state m_accountRegistrationState;
 };
 
 #endif // ACCOUNTSETUPWINDOW_H
