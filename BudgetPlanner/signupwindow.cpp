@@ -6,7 +6,6 @@
 #include "qjsonobject.h"
 #include "qjsonarray.h"
 #include "qstringlist.h"
-#include "operations.h"
 
 SignupWindow::SignupWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -21,19 +20,24 @@ SignupWindow::SignupWindow(QWidget *parent) :
     connect(ui->btnRegister, SIGNAL(clicked()), this, SLOT(registerNewAccount()));
 }
 
-SignupWindow::~SignupWindow()
-{
-    delete ui;
-}
-
+/*
+ * Register a users account using the email address and password provided. The account is only created if
+ * the user provides details that match, are above a certain length and if the email address is not currently in use
+ * by another user.
+ *
+ * @see JsonParser.makeHTTPRequest
+ *
+ * */
 void SignupWindow::registerNewAccount()
 {
+    // Collect user information
     QString initialEmail, initialEmailRepeat, initialPassword, initialPasswordRepeat;
     initialEmail = ui->txtEmailAddressInitial->toPlainText();
     initialEmailRepeat = ui->txtEmailAddressRepeat->toPlainText();
     initialPassword = ui->txtPasswordInitial->toPlainText();
     initialPasswordRepeat = ui->txtPasswordRepeat->toPlainText();
 
+    // Validate if objects are empty or not
     if(initialEmail.isEmpty() || initialEmailRepeat.isEmpty() || initialPassword.isEmpty() || initialPasswordRepeat.isEmpty())
     {
         QMessageBox::warning(this, tr("Qt Budget Planner"),
@@ -42,6 +46,7 @@ void SignupWindow::registerNewAccount()
                             QMessageBox::Ok);
     }
 
+    // Validate if user information is of the right size, and if the email addresses and passwords match
     if(initialEmail == initialEmailRepeat && initialPassword == initialPasswordRepeat)
         if(initialEmail.size() > 3 && initialEmailRepeat.size() > 3 && initialPassword.size() > 3 && initialPasswordRepeat.size() > 3)
         {
@@ -79,17 +84,27 @@ void SignupWindow::registerNewAccount()
                 message = dbInformation["message"].toString();
             }
 
-            Operations *o = new Operations(this);
-
+            // Determine if the user has been added to the database or not.
+            // Note: there has been an attempt to populate the message information of the
+            // QMessageBox 's with the variable "message" above, but after about two hours of working with
+            // trying to convert strings to const wchar *'s it seemed more time effective to move on.
             switch(success)
             {
                 case 0:
-                    o->displayInformativeMessage("Qt Budget Planner \n", message);
+                    QMessageBox::warning(this, tr("Qt Budget Planner"),
+                                        tr("Error processing request.\n\n"
+                                        "Technical error: please contact addstevenson@hotmail.com \n"
+                                           "It could either be that the email address is already in use by another user, "
+                                           "or there is a networking error."),
+                                        QMessageBox::Ok);
                     this->close();
                     break;
 
                 case 1:        
-                    o->displayInformativeMessage("Qt Budget Planner \n", message);
+                    QMessageBox::information(this, tr("Qt Budget Planner"),
+                                        tr("Account has been created! \n\n"
+                                        "Please login using the email address and password that you signed up with."),
+                                        QMessageBox::Ok);
                     this->close();
                     break;
 
@@ -114,3 +129,10 @@ void SignupWindow::registerNewAccount()
                                 QMessageBox::Ok);
         }
 }
+
+
+SignupWindow::~SignupWindow()
+{
+    delete ui;
+}
+

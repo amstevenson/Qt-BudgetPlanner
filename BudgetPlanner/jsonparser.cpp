@@ -11,9 +11,21 @@ JsonParser::JsonParser(QMainWindow *parent) : QMainWindow(parent)
     // default constructor
 }
 
+/*
+ * Creates a HTTPRequest using the QTNetwork modules classes.
+ *
+ * @param url    : the url where the script can be accessed from (QString).
+ * @param method : either "GET" or "POST. The first for getting information and the second for inserting/changing.
+ *                 both steps work in a very similar way, except for that some statements are skipped if the need for
+ *                 inserting information is different. Afterall there is no point appending information to a url if
+ *                 the need for it is not there.
+ * @param params : appends information to the url based on a QMap of type QString, QString.
+ * @see waitForFinish
+ * @return A json object that contains information relating to the query that has been sent.
+ *
+ * */
 QJsonObject JsonParser::makeHTTPRequest(QString url, QString method, QMap<QString, QString> params)
 {
-
     if(method == "GET")
     {
         QByteArray getData;
@@ -26,10 +38,10 @@ QJsonObject JsonParser::makeHTTPRequest(QString url, QString method, QMap<QStrin
         QNetworkReply *reply = manager->get(request);
         waitForFinish(reply);
 
-        // needs to use the read all function apparently to access data.
+        // Needs to use the read all function apparently to access data.
         getData = reply->readAll();
 
-        // create another bytearray structured as a json object
+        // Create another bytearray structured as a json object
         QJsonParseError err;
         QJsonDocument doc = QJsonDocument::fromJson(getData, &err);
 
@@ -72,7 +84,7 @@ QJsonObject JsonParser::makeHTTPRequest(QString url, QString method, QMap<QStrin
         // Check the redirect and retrieve all of the data from the middleware script
         postData = reply->readAll();
 
-        qDebug() << postData;
+        qDebug() << postData; // for debugging purposes
 
         // create another bytearray structured as a json object
         QJsonParseError err;
@@ -96,9 +108,15 @@ QJsonObject JsonParser::makeHTTPRequest(QString url, QString method, QMap<QStrin
     }
 }
 
-void JsonParser::waitForFinish(QNetworkReply *reply)
+/*
+ * A method that creates a connection between a QNetworkReply and a QEventLoop, in order
+ * to avoid the continuation of the execution of code before the query has been processed
+ * by the database and the reply collected.
+ *
+ * */
+void JsonParser::waitForFinish(QNetworkReply *netReply)
 {
-    QEventLoop loop;
-    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-    loop.exec();
+    QEventLoop waitLoop;
+    connect(netReply, SIGNAL(finished()), &waitLoop, SLOT(quit()));
+    waitLoop.exec();
 }

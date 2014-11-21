@@ -7,28 +7,28 @@ AccountSetupWindow::AccountSetupWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // table and user operations
+    // Table and user operations
     tableOp = new TableOperations(this);
 
-    // create the table model and set
+    // Create the table model and set
     m_model = new QStandardItemModel(1,3,this);
     ui->tableView->setModel(m_model);
 
-    // default state
+    // Default state
     m_accountRegistrationState = tableOp->getState("INCOME");
 
-    // default column headers
+    // Default column headers
     m_columnHeaders << tr("Category") << tr("Amount") << tr("");
     updateTableSettings();
     updateTableButtons();
 
-    // create connections with sockets
+    // Create signal connections for UI objects.
     connect(ui->btnAdd,      SIGNAL(clicked()), this, SLOT(addTableItem()));
     connect(ui->btnNext,     SIGNAL(clicked()), this, SLOT(getTableValues()));
     connect(ui->btnPrevious, SIGNAL(clicked()), this, SLOT(addAllTableItems()));
     connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(updateLabels()));
 
-    // initial state is 'income' which is the first process, therefore some QObjects are invisible
+    // Initial state is 'income' which is the first process, therefore some QObjects are invisible
     ui->btnPrevious->setVisible(false);
     ui->lblIncome->setVisible(false);
     ui->lblIncomeAmount->setVisible(false);
@@ -42,21 +42,21 @@ AccountSetupWindow::AccountSetupWindow(QWidget *parent) :
  * to the method responsible for sending the information to the database, which results in the end of the
  * registration steps.
  *
- * @see getState          : retrieve a specific state
- * @see checkForNullRows  : checks to see if any cells on a table are null or not.
- * @see getRowInformation : adds all information from each row, per column submitted.
- * @see makeHTTPRequest   : performs a database query based on the script and data passed.
- * @see updateLabels      : once a step has been finished, load the labels specific to the new specified state.
+ * @see TableOperations.getState          : retrieve a specific state
+ * @see TableOperations.checkForNullRows  : checks to see if any cells on a table are null or not.
+ * @see TableOperations.getRowInformation : adds all information from each row, per column submitted.
+ * @see JsonParser.makeHTTPRequest        : performs a database query based on the script and data passed.
+ *
  * */
 void AccountSetupWindow::getTableValues()
 {
-    // set a boolean to check if any rows are empty
-    bool rowEmpty = false;
+    // Set a boolean to check if any rows are empty
+    bool rowCellEmpty = false;
 
-    // check to see if there are any rows
+    // Check to see if there are any rows
     if(m_model->rowCount() == 0){
 
-        // do nothing
+        // Do nothing
         QMessageBox::warning(this, tr("My Application"),
                             tr("Empty table detected.\n\n"
                             "If you have no income or expenses, please add an item and enter 0 as a value!"),
@@ -64,8 +64,7 @@ void AccountSetupWindow::getTableValues()
     }
     else
     {
-        // if there are rows, perform the data gathering that is specific
-        // for each table state: income, expenses and budget.
+        // If there are rows, perform the data gathering that is specific to the current table state: income, expenses and budget.
         switch(m_accountRegistrationState)
         {
         case TABLESECTION::INCOME:
@@ -73,10 +72,10 @@ void AccountSetupWindow::getTableValues()
             //-----------------------------------------------------------------------------------------------//
             //                                      INCOME STATE                                             //
             //-----------------------------------------------------------------------------------------------//
-            // check for any empty rows
-            rowEmpty = tableOp->checkForNullRows(m_model, 2);
+            // Check for any empty row cells for a given amount of columns
+            rowCellEmpty = tableOp->checkForNullRowCells(m_model, 2);
 
-            if(rowEmpty == false)
+            if(rowCellEmpty == false)
             {
                 // If populated already, remove information (for when previous button is pressed)
                 if(m_userInformation.value("income_types").isEmpty() != true
@@ -99,7 +98,7 @@ void AccountSetupWindow::getTableValues()
                 m_accountRegistrationState = tableOp->getState("BUDGET");
                 addAllTableItems();
 
-                // first step is completed, move on to second
+                // First step is completed, move on to second
                 m_accountRegistrationState = tableOp->getState("EXPENSES");
             }
 
@@ -110,10 +109,10 @@ void AccountSetupWindow::getTableValues()
             //-----------------------------------------------------------------------------------------------//
             //                                      EXPENSES STATE                                           //
             //-----------------------------------------------------------------------------------------------//
-            // check for any empty rows
-            rowEmpty = tableOp->checkForNullRows(m_model, 2);
+            // Check for any empty row cells for a given amount of columns
+            rowCellEmpty = tableOp->checkForNullRowCells(m_model, 2);
 
-            if(rowEmpty == false)
+            if(rowCellEmpty == false)
             {
                 // If populated already, remove information (for when previous button is pressed)
                 if(m_userInformation.value("expense_types").isEmpty() != true
@@ -129,13 +128,13 @@ void AccountSetupWindow::getTableValues()
 
                 m_model->clear();
 
-                // if we are progressing to the "budget" page, and already have values existing in the system, retrieve them and display
+                // If we are progressing to the "budget" page, and already have values existing in the system, retrieve them and display
                 m_accountRegistrationState = tableOp->getState("FINISH");
                 addAllTableItems(); // Retrieve the income information - budgets are based on income items (or so I believe).
                                     // If, when in the addAllTableItems the state is 'FINISH', the 'delete' buttons are not created which allows us to
                                     // make room for the "budget" column, where the user can enter that information for each income item.
 
-                // second step is completed, move on to third
+                // Second step is completed, move on to third
                 m_accountRegistrationState = tableOp->getState("BUDGET");
             }
 
@@ -146,10 +145,10 @@ void AccountSetupWindow::getTableValues()
             //-----------------------------------------------------------------------------------------------//
             //                                      BUDGET STATE                                             //
             //-----------------------------------------------------------------------------------------------//
-            // check for any empty rows - three instead of two
-            rowEmpty = tableOp->checkForNullRows(m_model, 3);
+            // Check for any empty cells for a given amount of columns - column numbers are three instead of two
+            rowCellEmpty = tableOp->checkForNullRowCells(m_model, 3);
 
-            if(rowEmpty == false)
+            if(rowCellEmpty == false)
             {
                 // If populated already, remove information (for when previous button is pressed)
                 if(m_userInformation.value("income_types").isEmpty() != true && m_userInformation.value("income_type_amounts").isEmpty() != true)
@@ -165,65 +164,50 @@ void AccountSetupWindow::getTableValues()
 
                 if(m_userInformation.value("income_types").isEmpty() || m_userInformation.value("income_type_amounts").isEmpty()
                         || m_userInformation.value("income_budget_amounts").isEmpty()){
-                    // do nothing
+                    // Do nothing
                 }
                 else
                 {
-                    // If the user ends up with a budget amount of less than 0, then they are probably doing something wrong, or they
-                    // may want to create an unrealistic budget. At any rate, validation seems best for this.
-                    int ExpenseAmountLeft = ui->lblExpenseAmount->text().toInt();
+                    // Add all of the rows to the database: income, expenses and budget.
+                    JsonParser jsonParser = new JsonParser(this);
 
-                    if(ExpenseAmountLeft >= 0)
+                    // Initialise QMap responsible for query
+                    QMap<QString, QString> categoryItem;
+
+                    // Add to database - income items
+                    for(int i = 0; i < m_userInformation.value("income_types").size(); i++)
                     {
-                        // Add all of the rows to the database: income, expenses and budget.
-                        JsonParser jsonParser = new JsonParser(this);
-
-                        // Initialise QMap responsible for query
-                        QMap<QString, QString> categoryItem;
-
-                        // Add to database - income items
-                        for(int i = 0; i < m_userInformation.value("income_types").size(); i++)
-                        {
-                            categoryItem.insert("user_id", m_userID);
-                            categoryItem.insert("category_name", m_userInformation.value("income_types").at(i));
-                            categoryItem.insert("category_amount", m_userInformation.value("income_type_amounts").at(i));
-                            categoryItem.insert("category_type", "income");
-                            categoryItem.insert("category_budget", m_userInformation.value("income_budget_amounts").at(i));
-
-                            // Create and send POST query
-                            jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php",
-                                                       "POST",categoryItem);
-                            categoryItem.clear();
-                        }
-
-                        // Add to database - expense items
-                        for(int i = 0; i < m_userInformation.value("expense_types").size(); i++)
-                        {
-                            categoryItem.insert("user_id", m_userID);
-                            categoryItem.insert("category_name", m_userInformation.value("expense_types").at(i));
-                            categoryItem.insert("category_amount", m_userInformation.value("expense_type_amounts").at(i));
-                            categoryItem.insert("category_type", "expense");
-                            categoryItem.insert("category_budget", "0");
-
-                            // Create and send POST query
-                            jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php",
-                                                       "POST",categoryItem);
-                            categoryItem.clear();
-                        }
-
-                        // Update the user in the database and move to the account budget form.
                         categoryItem.insert("user_id", m_userID);
-                        jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/user_registration_complete.php",
+                        categoryItem.insert("category_name", m_userInformation.value("income_types").at(i));
+                        categoryItem.insert("category_amount", m_userInformation.value("income_type_amounts").at(i));
+                        categoryItem.insert("category_type", "income");
+                        categoryItem.insert("category_budget", m_userInformation.value("income_budget_amounts").at(i));
+
+                        // Create and send POST query
+                        jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php",
                                                    "POST",categoryItem);
+                        categoryItem.clear();
                     }
-                    else
+
+                    // Add to database - expense items
+                    for(int i = 0; i < m_userInformation.value("expense_types").size(); i++)
                     {
-                        // If the budget amount comes to < 0
-                        QMessageBox::warning(this, tr("My Application"),
-                                            tr("Error finalising registration.\n\n"
-                                            "Make sure to budget correctly! Ensure that your income outweighs the expenses!"),
-                                            QMessageBox::Ok);
+                        categoryItem.insert("user_id", m_userID);
+                        categoryItem.insert("category_name", m_userInformation.value("expense_types").at(i));
+                        categoryItem.insert("category_amount", m_userInformation.value("expense_type_amounts").at(i));
+                        categoryItem.insert("category_type", "expense");
+                        categoryItem.insert("category_budget", "0");
+
+                        // Create and send POST query
+                        jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php",
+                                                   "POST",categoryItem);
+                        categoryItem.clear();
                     }
+
+                    // Update the user in the database and move to the account budget form.
+                    categoryItem.insert("user_id", m_userID);
+                    jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/user_registration_complete.php",
+                                               "POST",categoryItem);
                 }
             }
             break;
@@ -233,67 +217,75 @@ void AccountSetupWindow::getTableValues()
         }
     }
 
-    updateLabels(); // we are on the next step - so we need new labels
+    updateLabels(); // We are on the next step - so we need new labels
 }
 
 /*
- * If the previous button is pressed, retrieve information relating to the user for the step before.
+ * If the previous button is pressed, retrieve information relating to the user for the step before (refer to getTableValues)
+ * in order to facilitate the need to display information from previous steps.
  *
+ * @see TableOperations.setRowInformation : sets the cell information for a table with the info in the passed StringList for
+ * the rows of the passed column number.
  * */
 void AccountSetupWindow::addAllTableItems()
 {
     m_model->clear();       // clear first, then add more later on
 
-    // switch progress enum - basically back one step, since it is the previous button and all
+    // Switch progress enum - basically back one step, since it is the previous button and all
     // two switches in this method, one for determining the stage of the registration, and the other
     // for determining what information to retrieve.
     switch(m_accountRegistrationState)
     {
-        case TABLESECTION::EXPENSES:
-            ui->btnPrevious->setVisible(false);
-            m_accountRegistrationState = TABLESECTION::INCOME;
-            break;
+    case TABLESECTION::EXPENSES:
+        ui->btnPrevious->setVisible(false);
+        m_accountRegistrationState = TABLESECTION::INCOME;
+    break;
 
-        case TABLESECTION::BUDGET:
-            ui->btnPrevious->setVisible(true);
-            m_accountRegistrationState = TABLESECTION::EXPENSES;
-            break;
+    case TABLESECTION::BUDGET:
+        ui->btnPrevious->setVisible(true);
+        m_accountRegistrationState = TABLESECTION::EXPENSES;
+        break;
 
-        case TABLESECTION::FINISH:
-            ui->btnPrevious->setVisible(true);
-            m_accountRegistrationState = TABLESECTION::BUDGET;
-            break;
-        default:
-            break;
+    case TABLESECTION::FINISH:
+        ui->btnPrevious->setVisible(true);
+        m_accountRegistrationState = TABLESECTION::BUDGET;
+        break;
+    default:
+        break;
     }
 
-    // determine what values to get back
+    // Determine what values to get back
     switch (m_accountRegistrationState)
     {
-        case TABLESECTION::INCOME:
-            tableOp->setRowInformation(m_model, m_userInformation.value("income_types"), 0);
-            tableOp->setRowInformation(m_model, m_userInformation.value("income_type_amounts"), 1);
-            break;
+    case TABLESECTION::INCOME:
+        tableOp->setRowInformation(m_model, m_userInformation.value("income_types"), 0);
+        tableOp->setRowInformation(m_model, m_userInformation.value("income_type_amounts"), 1);
+        break;
 
-        case TABLESECTION::EXPENSES:
-            tableOp->setRowInformation(m_model, m_userInformation.value("expense_types"), 0);
-            tableOp->setRowInformation(m_model, m_userInformation.value("expense_type_amounts"), 1);
-            break;
+    case TABLESECTION::EXPENSES:
+        tableOp->setRowInformation(m_model, m_userInformation.value("expense_types"), 0);
+        tableOp->setRowInformation(m_model, m_userInformation.value("expense_type_amounts"), 1);
+        break;
 
-        case TABLESECTION::BUDGET:
-            tableOp->setRowInformation(m_model, m_userInformation.value("income_types"), 0);
-            tableOp->setRowInformation(m_model, m_userInformation.value("income_type_amounts"), 1);
-            break;
-       default :
-            break;
+    case TABLESECTION::BUDGET:
+        tableOp->setRowInformation(m_model, m_userInformation.value("income_types"), 0);
+        tableOp->setRowInformation(m_model, m_userInformation.value("income_type_amounts"), 1);
+        break;
+    default:
+        break;
     }
 
-    updateTableSettings();  // update the table settings to add in the new column headers
-    updateTableButtons();
-    updateLabels();
+    updateTableSettings();  // Update the table settings to add in the new column headers.
+    updateTableButtons();   // If the state is income or expenses, add delete buttons, else leave it be.
+    updateLabels();         // Collect the labels that apply to the state returned to.
 }
 
-// adds a new item to the bottom of a specified table - from a dialog?
+/* This method determines what QStandardItem gets added to the table model. After it has been added
+ * a delete button is mapped to the new rows third column (if the state is either income or expenses).
+ *
+ * @see TableOperations.addTableItemFromList : adds the QStandardItem selected from the list, to the model.
+ *
+ * */
 void AccountSetupWindow::addTableItem()
 {
     QStringList qDialogItems;
@@ -305,7 +297,7 @@ void AccountSetupWindow::addTableItem()
                   << tr("Other Income") << tr("Retirement") << tr("Royalties");
 
             tableOp->addTableItemFromList(m_model, qDialogItems);
-            updateTableButtons();
+            updateTableButtons(); // Add a delete button.
 
             break;
 
@@ -315,18 +307,30 @@ void AccountSetupWindow::addTableItem()
                   << tr("Rent") << tr("Savings/Investments") << tr("Shopping") << tr("Utilities");
 
             tableOp->addTableItemFromList(m_model, qDialogItems);
-            updateTableButtons();
+            updateTableButtons(); // Add a delete button.
 
             break;
     }
 }
 
+/*
+ * Removes the table row/item (whichever the preferred semantic is). This method is called when the a signal
+ * that has been attached to a delete button is triggered.
+ *
+ * */
 void AccountSetupWindow::removeTableItem(int itemIndex)
 {
     m_model->removeRow(itemIndex);
     updateTableButtons();
 }
 
+/*
+ * Update the labels for the UI based on the current state of the registration process.
+ * Income and expenses are fairly similar. The budget state totals up the amounts from both
+ * the income and expenses states and displays relevant totals.
+ *
+ * @see TableOperations.getUserBudgetAmount : total up the specific amounts in the passed list.
+ * */
 void AccountSetupWindow::updateLabels()
 {
     switch(m_accountRegistrationState)
@@ -334,6 +338,7 @@ void AccountSetupWindow::updateLabels()
 
     case TABLESECTION::INCOME:
 
+        // Change UI labels.
         ui->btnAdd->setText("New Income Type");
         ui->btnNext->setText("Next");
         ui->lblTitle->setText("What is your income?");
@@ -343,6 +348,8 @@ void AccountSetupWindow::updateLabels()
 
     case TABLESECTION::EXPENSES:
 
+
+        // Change UI label visibility.
         if(ui->lblIncomeAmount->isVisible() != false)
             ui->lblIncomeAmount->setVisible(false);
 
@@ -358,6 +365,8 @@ void AccountSetupWindow::updateLabels()
         if(ui->btnAdd->isVisible() != true)
             ui->btnAdd->setVisible(true);
 
+
+        // Change UI labels.
         ui->btnAdd->setText("New Expense Type");
         ui->btnNext->setText("Next");
         ui->lblTitle->setText("What do you spend your money on each month?");
@@ -366,6 +375,8 @@ void AccountSetupWindow::updateLabels()
 
     case TABLESECTION::BUDGET:
 
+
+        // Change UI label visibility.
         if(ui->lblIncomeAmount->isVisible() != true)
             ui->lblIncomeAmount->setVisible(true);
 
@@ -379,12 +390,15 @@ void AccountSetupWindow::updateLabels()
             ui->lblExpense->setVisible(true);
 
         ui->btnAdd->setVisible(false);
+
+
+        // Change UI labels.
         ui->btnNext->setText("Finish");
         ui->lblTitle->setText("How much would you like to budget each month?");
         ui->lblDetails->setText("Please provide an a budget total for each expense.\n"
                                 "You can refer to the income amount towards the bottom of the screen.");
 
-        // Add up the totals for the amounts held in both income and expenses, and then display
+        // Add up the totals for the amounts held in both income and expenses, and then display.
         int totalIncome = tableOp->getUserBudgetAmount(m_userInformation.value("income_type_amounts"));
         int totalExpenses = tableOp->getUserBudgetAmount(m_userInformation.value("expense_type_amounts"));
         int totalAmount = totalIncome - totalExpenses;
@@ -397,10 +411,11 @@ void AccountSetupWindow::updateLabels()
 }
 
 /*
- * This method is concerned with: the layout of the columns, and their sizes;
- * in addition to the default items to be displayed for each state are centralised within the table
- * with the exception of the "budget" state, which requires no default item - although the
- * third row is centralised.
+ * This method is concerned with: the layout of the columns, and their sizes; in addition to
+ * the default items that are displayed for each state, which are centralised within the table
+ * with the exception of the those that pertain to the "budget" state, which requires no default
+ * item - although the third row is centralised.
+ *
  * */
 void AccountSetupWindow::updateTableSettings()
 {
@@ -481,6 +496,11 @@ void AccountSetupWindow::updateTableSettings()
 
 }
 
+/*
+ * For every row that is on the table, this method adds a delete button to it, and adds its signal
+ * to the QSignalMapper. This is only done for the first two steps of the registration process.
+ *
+ * */
 void AccountSetupWindow::updateTableButtons()
 {
     updateTableSettings(); // if columns are not centered (as a result of adding a new item)
@@ -510,6 +530,10 @@ void AccountSetupWindow::updateTableButtons()
     }
 }
 
+/*
+ * Retrieves the information relating to the user for updating purposes at the end of the registration process.
+ *
+ * */
 void AccountSetupWindow::setUserID(QString setIDNumber)
 {
     m_userID = setIDNumber;

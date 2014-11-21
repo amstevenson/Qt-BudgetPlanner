@@ -22,7 +22,7 @@ public:
     QStringList incomeType;
     QStringList getRowInformation(QStandardItemModel *, int);
 
-    bool checkForNullRows(QStandardItemModel *, int);
+    bool checkForNullRowCells(QStandardItemModel *, int);
     int getUserBudgetAmount(QStringList);
     void addTableItemFromList(QStandardItemModel *, QStringList);
     void setRowInformation(QStandardItemModel *, QStringList, int);

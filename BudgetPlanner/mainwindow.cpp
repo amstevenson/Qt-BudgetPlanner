@@ -7,9 +7,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // Set the background image and the fixed size of the window
     ui->lblBackground->setStyleSheet("background-image: url(:/images/loginBackground.jpg);");
     setFixedSize(814,454);
 
+    // Create a signal mapper and add the register and login buttons.
     QSignalMapper *m = new QSignalMapper(this);
 
     QList<QPushButton *> blist;
@@ -26,6 +28,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m, SIGNAL(mapped(QString)), this, SLOT(createNewWindow(QString)));
 }
 
+/*
+ * Dependant on which button is pressed on the main windows UI, another window is opened.
+ * In the case that a user chooses to login, a HTTPRequest will query whether s/he is registered or not,
+ * if so then they will be send to the budget window, and if not, the registration window.
+ *
+ * @see JsonParser.makeHTTPRequest
+ *
+ * */
 void MainWindow::createNewWindow(QString windowName)
 {
     if(windowName == "register")
@@ -35,12 +45,14 @@ void MainWindow::createNewWindow(QString windowName)
     }
     else if(windowName == "login")
     {
+        // Collect user input
         QString userEmail, userPassword;
         userEmail = ui->txtEmail->toPlainText();
         userPassword = ui->txtPassword->toPlainText();
 
         if(userEmail.isEmpty() != true && userPassword.isEmpty() != true)
         {
+            // Determine if the email and password entered is correct or not.
             JsonParser *jsonParser;
             jsonParser = new JsonParser(this);
 
@@ -53,10 +65,10 @@ void MainWindow::createNewWindow(QString windowName)
 
             QJsonObject postResponse = jsonParser->makeHTTPRequest(url_insert, "POST", queryData);
 
-            // convert to a jsonArray and build stringLists to store the data
+            // Convert to a jsonArray and build stringLists to store the data
             QJsonArray postDataToArray = postResponse["response"].toArray();
 
-            // certain ints are QStrings: this is because the database returns them as strings, even though
+            // Certain ints are QStrings: this is because the database returns them as strings, even though
             // they are specified as numbers within the database. A shame really.
             int success;
             QString message, userID, userRegistered;
@@ -73,8 +85,7 @@ void MainWindow::createNewWindow(QString windowName)
 
             }
 
-            // initialisation of classes
-            Operations *operations = new Operations(this);
+            // Initialisation of classes
             AccountSetupWindow *accountSetup = new AccountSetupWindow();
             AccountBudgetWindow *accountBudget = new AccountBudgetWindow();
 
@@ -82,7 +93,10 @@ void MainWindow::createNewWindow(QString windowName)
             switch(success)
             {
                 case 0: // login failed
-                    operations->displayInformativeMessage("Qt Budget Planner \n", message);
+                    QMessageBox::warning(this, tr("Qt Budget Planner"),
+                                        tr("Login has failed. \n\n"
+                                        "Please check that you have entered in the correct email address and password."),
+                                        QMessageBox::Ok);
                     break;
 
                 case 1: // login successful
@@ -108,7 +122,8 @@ void MainWindow::createNewWindow(QString windowName)
         }
         else
         {
-            QMessageBox::warning(this, tr("My Application"),
+            // If either of the fields are left blank
+            QMessageBox::warning(this, tr("Qt Budget Planner"),
                                 tr("Error processing request.\n\n"
                                 "Please check to see if the email and password fields are empty."
                                 " If so, please enter valid information."),

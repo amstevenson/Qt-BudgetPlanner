@@ -21,7 +21,7 @@ public slots:
 private:
 
     // wait for finish works in conjunction with makeHTTPRequest.
-    void waitForFinish(QNetworkReply *reply);
+    void waitForFinish(QNetworkReply *);
 
     // To allow us to perform networking operations.
     QNetworkAccessManager *manager;

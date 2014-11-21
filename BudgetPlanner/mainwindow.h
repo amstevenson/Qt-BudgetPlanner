@@ -9,7 +9,6 @@
 #include "accountsetupwindow.h"
 #include "accountbudgetwindow.h"
 #include "signupwindow.h"
-#include "operations.h"
 
 namespace Ui {
 class MainWindow;

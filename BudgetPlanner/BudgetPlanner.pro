@@ -19,7 +19,6 @@ SOURCES += main.cpp\
     signupwindow.cpp \
     accountsetupwindow.cpp \
     accountbudgetwindow.cpp \
-    operations.cpp \
     tableoperations.cpp
 
 HEADERS  += mainwindow.h \
@@ -27,7 +26,6 @@ HEADERS  += mainwindow.h \
     signupwindow.h \
     accountsetupwindow.h \
     accountbudgetwindow.h \
-    operations.h \
     tableoperations.h
 
 FORMS    += mainwindow.ui \
