@@ -2,6 +2,7 @@
 #define ACCOUNTSETUPWINDOW_H
 
 #include <QMainWindow>
+#include "accountbudgetwindow.h"
 #include <QTableWidget>
 #include <QDesktopWidget>
 #include <QMessageBox>
@@ -25,7 +26,7 @@ public:
     explicit AccountSetupWindow(QWidget *parent = 0);
 
     ~AccountSetupWindow();
-    void setUserID(QString);
+    void setUserID(QString, int);
 
 private slots:
     void removeTableItem(int);
@@ -40,7 +41,6 @@ private:
     QMap<QString, QStringList> m_userInformation;
     QStringList m_columnHeaders;
     QStandardItemModel *m_model;
-    QStandardItemModel getTableIndexItem(QStringList);
     QString m_userID;
 
     // @see tableOperations.h /.cpp

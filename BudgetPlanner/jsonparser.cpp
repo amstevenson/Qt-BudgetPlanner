@@ -33,13 +33,15 @@ QJsonObject JsonParser::makeHTTPRequest(QString url, QString method, QMap<QStrin
 
         QNetworkRequest request;
         request.setUrl(QUrl(url));
-        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-httpd-php");
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
         QNetworkReply *reply = manager->get(request);
         waitForFinish(reply);
 
         // Needs to use the read all function apparently to access data.
         getData = reply->readAll();
+
+        qDebug() << getData; // for debugging purposes
 
         // Create another bytearray structured as a json object
         QJsonParseError err;
@@ -63,7 +65,9 @@ QJsonObject JsonParser::makeHTTPRequest(QString url, QString method, QMap<QStrin
 
         QByteArray postData;
 
-        // for each key in the params list <string, string>, add the post parameters to the QByteArray
+        // For each key in the params list <string, string>, add the post parameters to the QByteArray;
+        // this searches for all of the keys (one by one) and seperates the name of the key, and the
+        // value with an "=". The seperator for the insertion of a new key/value is an ampersand.
         for(int i = 0; i < params.size(); i++)
         {
             QString paramData1 = params.keys().at(i);                   // key name

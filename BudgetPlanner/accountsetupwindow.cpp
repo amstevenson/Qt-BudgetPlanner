@@ -26,7 +26,7 @@ AccountSetupWindow::AccountSetupWindow(QWidget *parent) :
     connect(ui->btnAdd,      SIGNAL(clicked()), this, SLOT(addTableItem()));
     connect(ui->btnNext,     SIGNAL(clicked()), this, SLOT(getTableValues()));
     connect(ui->btnPrevious, SIGNAL(clicked()), this, SLOT(addAllTableItems()));
-    connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(updateLabels()));
+    connect(m_model,         SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(updateLabels()));
 
     // Initial state is 'income' which is the first process, therefore some QObjects are invisible
     ui->btnPrevious->setVisible(false);
@@ -208,6 +208,18 @@ void AccountSetupWindow::getTableValues()
                     categoryItem.insert("user_id", m_userID);
                     jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/user_registration_complete.php",
                                                "POST",categoryItem);
+
+                    // Once the rows have started to be added to the database, notify the user and return them to the main screen
+                    QMessageBox::information(this, tr("Qt Budget Planner"),
+                                        tr("You will now be directed to your summary page, please return to this setup in the future"
+                                           " should you wish to change any of your information."
+                                        ),
+                                        QMessageBox::Ok);
+
+                    AccountBudgetWindow *summaryWindow = new AccountBudgetWindow();
+                    summaryWindow->setUserID(m_userID);
+                    summaryWindow->show();
+                    this->close();
                 }
             }
             break;
@@ -531,12 +543,26 @@ void AccountSetupWindow::updateTableButtons()
 }
 
 /*
- * Retrieves the information relating to the user for updating purposes at the end of the registration process.
+ * Retrieves the information relating to the user for updating/registration purposes.
  *
  * */
-void AccountSetupWindow::setUserID(QString setIDNumber)
+void AccountSetupWindow::setUserID(QString setIDNumber, int userRegistered)
 {
     m_userID = setIDNumber;
+
+    switch(userRegistered)
+    {
+        case 0:
+
+            // Do nothing
+            break;
+
+        case 1:
+
+            m_userInformation = tableOp->getCategoryItems(m_userID);
+            addAllTableItems();
+            break;
+    }
 }
 
 AccountSetupWindow::~AccountSetupWindow()

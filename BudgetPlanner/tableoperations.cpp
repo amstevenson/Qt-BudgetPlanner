@@ -2,6 +2,9 @@
 #include "qdebug.h"
 #include "qinputdialog.h"
 #include "qmessagebox.h"
+#include "qjsonobject.h"
+#include "qjsonarray.h"
+#include "jsonparser.h"
 
 TableOperations::TableOperations(QMainWindow *parent) : QMainWindow(parent)
 {
@@ -125,6 +128,16 @@ void TableOperations::setRowInformation(QStandardItemModel *tableModel, QStringL
             tableModel->setData(rowIndex, Qt::AlignCenter, Qt::TextAlignmentRole);
             break;
 
+        case 2:
+
+            // enters the data for the third row
+            rowItem = new QStandardItem(QString(rowInformation.at(i)));
+            tableModel->setItem(i, colNumber, rowItem);
+
+            rowIndex = tableModel->index(i,colNumber);
+            tableModel->setData(rowIndex, Qt::AlignCenter, Qt::TextAlignmentRole);
+            break;
+
         default:
             break;
         }
@@ -154,6 +167,96 @@ void TableOperations::addTableItemFromList(QStandardItemModel *tableModel, QStri
     tableModel->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
     index = tableModel->index(newRowIndex,1);
     tableModel->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
+}
+
+QMap<QString,QStringList> TableOperations::getCategoryItems(QString userID)
+{
+    JsonParser jsonParser = new JsonParser(this);
+
+    // Add the userID that will be sent off as the parameter for the HTTPRequest
+    QMap<QString,QString> qmapUserID;
+    qmapUserID.insert("user_id", userID);
+
+    QJsonObject postResponse = jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/get_all_category_items.php",
+                                                   "POST",qmapUserID);
+
+    // Set up a QMap<QString, QStringList> that will be sent back containing all of the category item information.
+    QMap<QString,QStringList> m_userInformation;
+
+    // Category items array
+    QJsonArray categoryItemsToArray = postResponse["categoryitems"].toArray();
+
+    // Success of the HTTPRequest
+    int success = postResponse["success"].toInt();
+
+    // Define QStringLists to hold the category information
+    QStringList categoryName, categoryAmount, categoryType, categoryBudget;
+
+    // Seperate the values to eliminate ambiguity in terms of incomes and expenses.
+    QStringList incomeNames,  expenseNames, incomeAmounts, expenseAmounts, budgetAmounts;
+
+    // If we get a success of 0, notify user of the error
+    // If we get a success of 1, store the values of category items in the QMap of StringLists
+    switch(success)
+    {
+        case 0:
+
+            // the user has not registered yet, so we do not need to do anything else.
+            break;
+
+        case 1:
+
+            // Insert the StringList information that pertains to the category items collected from the database.
+            foreach (const QJsonValue & value, categoryItemsToArray)
+            {
+                QJsonObject dbInformation = value.toObject();
+
+                categoryName.append(dbInformation["category_name"].toString());
+                categoryAmount.append(dbInformation["category_amount"].toString());
+                categoryType.append(dbInformation["category_type"].toString());
+                categoryBudget.append(dbInformation["category_budget"].toString());
+
+                // QMap inserts for the StringLists
+                m_userInformation.insert("category_name", categoryName);
+                m_userInformation.insert("category_amount", categoryAmount);
+                m_userInformation.insert("category_type", categoryType);
+                m_userInformation.insert("category_budget", categoryBudget);
+            }
+
+            for(int i = 0; i < m_userInformation.value("category_type").size(); i++)
+            {
+                if(m_userInformation.value("category_type").at(i) == "income")
+                {
+                    incomeNames.append(m_userInformation.value("category_name").at(i));
+                    incomeAmounts.append(m_userInformation.value("category_amount").at(i));
+                    budgetAmounts.append(m_userInformation.value("category_budget").at(i));
+                }
+                else if(m_userInformation.value("category_type").at(i) == "expense")
+                {
+                    expenseNames.append(m_userInformation.value("category_name").at(i));
+                    expenseAmounts.append(m_userInformation.value("category_amount").at(i));
+                }
+            }
+
+            // Clear the previous QMap of QStringLists
+            m_userInformation.clear();
+
+            // Repopulate with sorted values
+            // Income items
+            m_userInformation.insert("income_types", incomeNames);
+            m_userInformation.insert("income_type_amounts", incomeAmounts);
+            m_userInformation.insert("income_budget_amounts", budgetAmounts);
+
+            // Expense items
+            m_userInformation.insert("expense_types", expenseNames);
+            m_userInformation.insert("expense_type_amounts", expenseAmounts);
+            break;
+
+        default:
+            break;
+    }
+
+    return m_userInformation;
 }
 
 /*

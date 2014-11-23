@@ -104,13 +104,14 @@ void MainWindow::createNewWindow(QString windowName)
                     if(userRegistered == "0")
                     {
                         // go to registration form
-                        accountSetup->setUserID(userID);
+                        accountSetup->setUserID(userID, userRegistered.toInt());
                         accountSetup->show();
                         this->close();
                     }
                     else if(userRegistered == "1")
                     {
                         // go to summary form
+                        accountBudget->setUserID(userID);
                         accountBudget->show();
                         this->close();
                     }

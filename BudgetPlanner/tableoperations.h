@@ -19,6 +19,7 @@ class TableOperations : public QMainWindow
 public:
     TableOperations(QMainWindow *parent);
 
+    QMap<QString,QStringList> getCategoryItems(QString);
     QStringList incomeType;
     QStringList getRowInformation(QStandardItemModel *, int);
 

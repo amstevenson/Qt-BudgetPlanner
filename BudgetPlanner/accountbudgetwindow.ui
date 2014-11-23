@@ -6,35 +6,197 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>816</width>
-    <height>638</height>
+    <width>835</width>
+    <height>770</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="lblSummaryHeader">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>550</y>
-      <width>46</width>
-      <height>13</height>
+      <x>320</x>
+      <y>40</y>
+      <width>231</width>
+      <height>31</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+     </font>
+    </property>
     <property name="text">
-     <string>budget</string>
+     <string>Budget Summary</string>
     </property>
    </widget>
-   <widget class="QTreeView" name="budgetTreeView">
+   <widget class="QPushButton" name="btnChangeValues">
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>20</y>
-      <width>721</width>
-      <height>471</height>
+      <y>640</y>
+      <width>111</width>
+      <height>61</height>
      </rect>
+    </property>
+    <property name="text">
+     <string>Change
+ Income/Expenses</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnLogout">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>640</y>
+      <width>111</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Logout</string>
+    </property>
+   </widget>
+   <widget class="QTableView" name="tblIncome">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>230</y>
+      <width>751</width>
+      <height>151</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QTableView" name="tblExpenses">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>440</y>
+      <width>751</width>
+      <height>151</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>200</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Income</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>410</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Expenses</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblTotalIncome">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>90</y>
+      <width>101</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Total Income:  £</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblTotalExpenses">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>110</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Total Expenses:  £</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblTotalIncomeAmount">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>90</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblTotalExpensesAmount">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>110</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblSummaryComment">
+    <property name="geometry">
+     <rect>
+      <x>45</x>
+      <y>150</y>
+      <width>741</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Summary</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblTotalSavings">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>130</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Total Savings:  £</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lblTotalSavingsAmount">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>130</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>0</string>
     </property>
    </widget>
   </widget>
@@ -43,7 +205,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>816</width>
+     <width>835</width>
      <height>21</height>
     </rect>
    </property>
