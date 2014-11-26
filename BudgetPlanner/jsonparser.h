@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkAccessManager>
-#include "QMap.h"
+#include "qmap.h"
 
 class JsonParser : public QMainWindow
 {
