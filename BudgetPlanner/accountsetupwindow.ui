@@ -203,10 +203,17 @@
      <string>Menu</string>
     </property>
     <addaction name="actionAbout"/>
-    <addaction name="actionHelp"/>
-    <addaction name="actionExit"/>
+    <addaction name="actionLogout"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
    </widget>
    <addaction name="menuMenu"/>
+   <addaction name="menuEdit"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionAbout">
@@ -219,9 +226,19 @@
     <string>Help</string>
    </property>
   </action>
-  <action name="actionExit">
+  <action name="actionLogout">
    <property name="text">
-    <string>Exit</string>
+    <string>Logout</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="text">
+    <string>Redo</string>
    </property>
   </action>
  </widget>

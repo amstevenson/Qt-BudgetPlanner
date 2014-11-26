@@ -22,6 +22,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void displayInformativeMessage(QString, QString);
+    JsonParser *jsonParser;
 
 private:
     Ui::MainWindow *ui;

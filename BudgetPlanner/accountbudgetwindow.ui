@@ -134,7 +134,7 @@
    <widget class="QLabel" name="lblTotalIncomeAmount">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>440</x>
       <y>90</y>
       <width>91</width>
       <height>20</height>
@@ -147,7 +147,7 @@
    <widget class="QLabel" name="lblTotalExpensesAmount">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>440</x>
       <y>110</y>
       <width>91</width>
       <height>20</height>
@@ -189,9 +189,9 @@
    <widget class="QLabel" name="lblTotalSavingsAmount">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>440</x>
       <y>130</y>
-      <width>91</width>
+      <width>101</width>
       <height>20</height>
      </rect>
     </property>
@@ -214,8 +214,7 @@
      <string>Menu</string>
     </property>
     <addaction name="actionAbout"/>
-    <addaction name="actionHelp"/>
-    <addaction name="actionExit"/>
+    <addaction name="actionLogout"/>
    </widget>
    <addaction name="menuMenu"/>
   </widget>
@@ -230,9 +229,9 @@
     <string>Help</string>
    </property>
   </action>
-  <action name="actionExit">
+  <action name="actionLogout">
    <property name="text">
-    <string>Exit</string>
+    <string>Logout</string>
    </property>
   </action>
  </widget>

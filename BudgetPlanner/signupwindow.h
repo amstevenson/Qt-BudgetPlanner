@@ -2,6 +2,7 @@
 #define SIGNUPWINDOW_H
 
 #include <QMainWindow>
+#include "jsonparser.h"
 
 namespace Ui {
 class SignupWindow;
@@ -14,6 +15,7 @@ class SignupWindow : public QMainWindow
 public:
     explicit SignupWindow(QWidget *parent = 0);
     ~SignupWindow();
+    JsonParser *jsonParser;
 
 private:
     Ui::SignupWindow *ui;

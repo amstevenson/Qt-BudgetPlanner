@@ -13,7 +13,10 @@ AccountBudgetWindow::AccountBudgetWindow(QWidget *parent) :
 
     // Signal connections
     connect(ui->btnChangeValues, SIGNAL(clicked()), this, SLOT(changeUserBudget()));
+    connect(ui->actionLogout, SIGNAL(triggered()), this, SLOT(logout()));
 
+    // Practical actions
+    connect (ui->actionAbout, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
 
 /*
@@ -55,12 +58,12 @@ void AccountBudgetWindow::getCategoryItems()
 {
     // Initialise the QMap<QString, QStringList> that will be used to contain all of the information
     // relating to the income and expenses belonging to the users.
-    JsonParser jsonParser = new JsonParser(this);
+    jsonParser = new JsonParser(this);
 
     QMap<QString,QString> qmapUserID;
     qmapUserID.insert("user_id", m_userID);
 
-    QJsonObject postResponse = jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/get_all_category_items.php",
+    QJsonObject postResponse = jsonParser->makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/get_all_category_items.php",
                                                    "POST",qmapUserID);
 
     // Category items array
@@ -252,6 +255,17 @@ void AccountBudgetWindow::updateLabels()
     else if (incomeDifference - totalExpenseAmount < 0)
         ui->lblSummaryComment->setText("Once your planned savings are deducted from your expenses, you are left in the red"
                                        "\n Please revise and be more careful!");
+}
+
+/*
+ * Return to the main page - logout
+ *
+ * */
+void AccountBudgetWindow::logout()
+{
+    MainWindow *main = new MainWindow();
+    main->show();
+    this->close();
 }
 
 AccountBudgetWindow::~AccountBudgetWindow()

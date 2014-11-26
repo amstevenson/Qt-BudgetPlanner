@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "accountbudgetwindow.h"
+#include "mainwindow.h"
 #include <QTableWidget>
 #include <QDesktopWidget>
 #include <QMessageBox>
@@ -28,12 +29,15 @@ public:
     ~AccountSetupWindow();
     void setUserID(QString, int);
 
+    JsonParser *jsonParser;
+
 private slots:
     void removeTableItem(int);
     void addTableItem();
     void getTableValues();
     void addAllTableItems();
     void updateLabels();
+    void logout();
 
 private:
     Ui::AccountSetupWindow *ui;

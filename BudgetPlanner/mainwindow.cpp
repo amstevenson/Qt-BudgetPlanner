@@ -8,8 +8,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     // Set the background image and the fixed size of the window
+    // Background from: http://wallpaperswide.com/simple_blue_background-wallpapers.html
     ui->lblBackground->setStyleSheet("background-image: url(:/images/loginBackground.jpg);");
-    setFixedSize(814,454);
+    setFixedSize(800,454);
 
     // Create a signal mapper and add the register and login buttons.
     QSignalMapper *m = new QSignalMapper(this);
@@ -26,6 +27,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m->setMapping(blist[1], "login");
 
     connect(m, SIGNAL(mapped(QString)), this, SLOT(createNewWindow(QString)));
+
+    // Action from the lecture practical - text editor
+    connect (ui->actionAbout, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
 
 /*
@@ -53,7 +57,6 @@ void MainWindow::createNewWindow(QString windowName)
         if(userEmail.isEmpty() != true && userPassword.isEmpty() != true)
         {
             // Determine if the email and password entered is correct or not.
-            JsonParser *jsonParser;
             jsonParser = new JsonParser(this);
 
             QMap<QString, QString> queryData;

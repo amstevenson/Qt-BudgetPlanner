@@ -17,10 +17,10 @@
    <widget class="QLabel" name="lblPassword">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>160</x>
       <y>220</y>
-      <width>46</width>
-      <height>16</height>
+      <width>111</width>
+      <height>20</height>
      </rect>
     </property>
     <property name="text">
@@ -40,10 +40,10 @@
    <widget class="QLabel" name="lblEmailAddress">
     <property name="geometry">
      <rect>
-      <x>160</x>
+      <x>140</x>
       <y>170</y>
-      <width>71</width>
-      <height>16</height>
+      <width>131</width>
+      <height>20</height>
      </rect>
     </property>
     <property name="text">
@@ -118,7 +118,6 @@
     </property>
    </widget>
    <zorder>lblBackground</zorder>
-   <zorder>verticalLayoutWidget</zorder>
    <zorder>lblEmailAddress</zorder>
    <zorder>txtEmail</zorder>
    <zorder>lblPassword</zorder>
@@ -141,8 +140,6 @@
      <string>Menu</string>
     </property>
     <addaction name="actionAbout"/>
-    <addaction name="actionHelp"/>
-    <addaction name="actionExit"/>
    </widget>
    <addaction name="menuExit"/>
   </widget>
@@ -160,9 +157,9 @@
     <string>Help</string>
    </property>
   </action>
-  <action name="actionExit">
+  <action name="actionLogout">
    <property name="text">
-    <string>Exit</string>
+    <string>Logout</string>
    </property>
   </action>
   <action name="actionAbout">

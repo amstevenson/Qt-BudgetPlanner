@@ -5,6 +5,7 @@
 #include <QStandardItemModel>
 #include <QModelIndex>
 #include "qstringlist.h"
+#include "jsonparser.h"
 
 // namespace for the Enumerators that determine the state of the account setup ui table
 QT_BEGIN_NAMESPACE
@@ -30,6 +31,8 @@ public:
 
     // Enum to control the state of the account setup form
     TABLESECTION::state getState(QString);
+
+    JsonParser *jsonParser;
 };
 
 #endif // TABLEOPERATIONS_H

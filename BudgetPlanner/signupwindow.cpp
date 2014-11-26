@@ -1,7 +1,6 @@
 #include "signupwindow.h"
 #include "ui_signupwindow.h"
 #include "qmessagebox.h"
-#include "jsonparser.h"
 #include "qmap.h"
 #include "qjsonobject.h"
 #include "qjsonarray.h"
@@ -14,10 +13,14 @@ SignupWindow::SignupWindow(QWidget *parent) :
     ui->setupUi(this);
 
     // window design variables
+    // Background from: http://wallpaperswide.com/simple_blue_background-wallpapers.html
     ui->lblBackground->setStyleSheet("background-image: url(:/images/loginBackground.jpg);");
-    setFixedSize(814,454);
+    setFixedSize(800,454);
 
     connect(ui->btnRegister, SIGNAL(clicked()), this, SLOT(registerNewAccount()));
+
+    // Action from the lecture practical - text editor
+    connect (ui->actionAbout, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
 
 /*
@@ -53,7 +56,6 @@ void SignupWindow::registerNewAccount()
             //*********************************************************//
             //                   Create the new account                //
             //*********************************************************//
-            JsonParser *jsonParser;
             jsonParser = new JsonParser(this);
 
             QMap<QString, QString> queryData;
@@ -72,7 +74,7 @@ void SignupWindow::registerNewAccount()
             // convert to a jsonArray and build stringLists to store the data
             QJsonArray postDataToArray = postResponse["response"].toArray();
 
-            int success;
+            int success = 0;
             QString message;
 
             // will return a success and message value for the insert

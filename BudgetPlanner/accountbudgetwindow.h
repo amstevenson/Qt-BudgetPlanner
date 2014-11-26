@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "accountsetupwindow.h"
+#include "mainwindow.h"
 #include "qstringlist.h"
 #include "qmap.h"
 #include "qstandarditemmodel.h"
@@ -22,9 +23,12 @@ public:
 
     void setUserID(QString);
 
+    JsonParser *jsonParser;
+
 private slots:
 
     void changeUserBudget();
+    void logout();
 
 private:
 

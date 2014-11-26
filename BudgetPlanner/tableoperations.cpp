@@ -4,7 +4,6 @@
 #include "qmessagebox.h"
 #include "qjsonobject.h"
 #include "qjsonarray.h"
-#include "jsonparser.h"
 
 TableOperations::TableOperations(QMainWindow *parent) : QMainWindow(parent)
 {
@@ -171,13 +170,13 @@ void TableOperations::addTableItemFromList(QStandardItemModel *tableModel, QStri
 
 QMap<QString,QStringList> TableOperations::getCategoryItems(QString userID)
 {
-    JsonParser jsonParser = new JsonParser(this);
+    jsonParser = new JsonParser(this);
 
     // Add the userID that will be sent off as the parameter for the HTTPRequest
     QMap<QString,QString> qmapUserID;
     qmapUserID.insert("user_id", userID);
 
-    QJsonObject postResponse = jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/get_all_category_items.php",
+    QJsonObject postResponse = jsonParser->makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/get_all_category_items.php",
                                                    "POST",qmapUserID);
 
     // Set up a QMap<QString, QStringList> that will be sent back containing all of the category item information.

@@ -27,6 +27,14 @@ AccountSetupWindow::AccountSetupWindow(QWidget *parent) :
     connect(ui->btnNext,     SIGNAL(clicked()), this, SLOT(getTableValues()));
     connect(ui->btnPrevious, SIGNAL(clicked()), this, SLOT(addAllTableItems()));
     connect(m_model,         SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(updateLabels()));
+    connect(ui->actionLogout, SIGNAL(triggered()), this, SLOT(logout()));
+
+    // Signal connections for actions - mostly derived from the text editor practial
+    // Note: QTableViews evidently do not process undo's and redo's in the same way as QTextEdits.
+    //       I was planning to incorporate them into the application. I would have to use
+    //       stacks to produce the same effect since there is no copy/redo slot.
+    //       Unfortunately I do not have enough time with all of the other assignments deadlines approaching.
+    connect (ui->actionAbout, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
     // Initial state is 'income' which is the first process, therefore some QObjects are invisible
     ui->btnPrevious->setVisible(false);
@@ -169,7 +177,7 @@ void AccountSetupWindow::getTableValues()
                 else
                 {
                     // Add all of the rows to the database: income, expenses and budget.
-                    JsonParser jsonParser = new JsonParser(this);
+                    jsonParser = new JsonParser(this);
 
                     // Initialise QMap responsible for query
                     QMap<QString, QString> categoryItem;
@@ -184,7 +192,7 @@ void AccountSetupWindow::getTableValues()
                         categoryItem.insert("category_budget", m_userInformation.value("income_budget_amounts").at(i));
 
                         // Create and send POST query
-                        jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php",
+                        jsonParser->makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php",
                                                    "POST",categoryItem);
                         categoryItem.clear();
                     }
@@ -199,14 +207,14 @@ void AccountSetupWindow::getTableValues()
                         categoryItem.insert("category_budget", "0");
 
                         // Create and send POST query
-                        jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php",
+                        jsonParser->makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/create_new_category_item.php",
                                                    "POST",categoryItem);
                         categoryItem.clear();
                     }
 
                     // Update the user in the database and move to the account budget form.
                     categoryItem.insert("user_id", m_userID);
-                    jsonParser.makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/user_registration_complete.php",
+                    jsonParser->makeHTTPRequest("http://www.amstevenson.net/middleware/qtcreator/user_registration_complete.php",
                                                "POST",categoryItem);
 
                     // Once the rows have started to be added to the database, notify the user and return them to the main screen
@@ -563,6 +571,17 @@ void AccountSetupWindow::setUserID(QString setIDNumber, int userRegistered)
             addAllTableItems();
             break;
     }
+}
+
+/*
+ * Return to the main page - logout
+ *
+ * */
+void AccountSetupWindow::logout()
+{
+    MainWindow *main = new MainWindow();
+    main->show();
+    this->close();
 }
 
 AccountSetupWindow::~AccountSetupWindow()
