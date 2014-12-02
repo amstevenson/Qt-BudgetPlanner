@@ -176,6 +176,9 @@ void AccountSetupWindow::getTableValues()
                 }
                 else
                 {
+                    // disable the button until the end of the method
+                    ui->btnAdd->setEnabled(false);
+
                     // Add all of the rows to the database: income, expenses and budget.
                     jsonParser = new JsonParser(this);
 
@@ -300,7 +303,8 @@ void AccountSetupWindow::addAllTableItems()
     updateLabels();         // Collect the labels that apply to the state returned to.
 }
 
-/* This method determines what QStandardItem gets added to the table model. After it has been added
+/*
+ * This method determines what QStandardItem gets added to the table model. After it has been added
  * a delete button is mapped to the new rows third column (if the state is either income or expenses).
  *
  * @see TableOperations.addTableItemFromList : adds the QStandardItem selected from the list, to the model.
@@ -485,8 +489,6 @@ void AccountSetupWindow::updateTableSettings()
         case TABLESECTION::INCOME:
             if(m_model->data(index).toString() == "")
             {
-                qDebug() << "in the blank section: income";
-
                 m_model->setData(index, "Monthly Income");
                 m_model->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
 
@@ -553,6 +555,11 @@ void AccountSetupWindow::updateTableButtons()
 /*
  * Retrieves the information relating to the user for updating/registration purposes.
  *
+ * @see TableOperations.getCategoryItems(QString)
+ *
+ * @param userID : the id of the user that will be used in database queries.
+ *
+ * @param userRegistered : whether or not the user has registered before or not.
  * */
 void AccountSetupWindow::setUserID(QString setIDNumber, int userRegistered)
 {

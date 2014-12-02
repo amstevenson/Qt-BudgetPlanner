@@ -220,6 +220,9 @@
    <property name="text">
     <string>About</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
   </action>
   <action name="actionHelp">
    <property name="text">
@@ -229,6 +232,9 @@
   <action name="actionLogout">
    <property name="text">
     <string>Logout</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="actionUndo">

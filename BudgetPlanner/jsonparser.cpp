@@ -20,7 +20,7 @@ JsonParser::JsonParser(QMainWindow *parent) : QMainWindow(parent)
  *                 inserting information is different. Afterall there is no point appending information to a url if
  *                 the need for it is not there.
  * @param params : appends information to the url based on a QMap of type QString, QString.
- * @see waitForFinish
+ * @see JsonParser.waitForFinish()
  * @return A json object that contains information relating to the query that has been sent.
  *
  * */

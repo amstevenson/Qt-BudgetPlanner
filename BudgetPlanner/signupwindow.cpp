@@ -21,6 +21,10 @@ SignupWindow::SignupWindow(QWidget *parent) :
 
     // Action from the lecture practical - text editor
     connect (ui->actionAbout, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
+    // set the echo mode for password fields
+    ui->txtPasswordInitial->setEchoMode(QLineEdit::Password);
+    ui->txtPasswordRepeat->setEchoMode(QLineEdit::Password);
 }
 
 /*
@@ -33,12 +37,15 @@ SignupWindow::SignupWindow(QWidget *parent) :
  * */
 void SignupWindow::registerNewAccount()
 {
+    // disable the clicking of the button until the process is finished (to avoid multiple clicking).
+    ui->btnRegister->setEnabled(false);
+
     // Collect user information
     QString initialEmail, initialEmailRepeat, initialPassword, initialPasswordRepeat;
-    initialEmail = ui->txtEmailAddressInitial->toPlainText();
-    initialEmailRepeat = ui->txtEmailAddressRepeat->toPlainText();
-    initialPassword = ui->txtPasswordInitial->toPlainText();
-    initialPasswordRepeat = ui->txtPasswordRepeat->toPlainText();
+    initialEmail = ui->txtEmailAddressInitial->text();
+    initialEmailRepeat = ui->txtEmailAddressRepeat->text();
+    initialPassword = ui->txtPasswordInitial->text();
+    initialPasswordRepeat = ui->txtPasswordRepeat->text();
 
     // Validate if objects are empty or not
     if(initialEmail.isEmpty() || initialEmailRepeat.isEmpty() || initialPassword.isEmpty() || initialPasswordRepeat.isEmpty())
@@ -130,6 +137,9 @@ void SignupWindow::registerNewAccount()
                                 "Your email addresses and passwords need to match"),
                                 QMessageBox::Ok);
         }
+
+    // enable clicking again (for if the registration goes wrong on the db end)
+    ui->btnRegister->setEnabled(true);
 }
 
 

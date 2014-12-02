@@ -168,6 +168,14 @@ void TableOperations::addTableItemFromList(QStandardItemModel *tableModel, QStri
     tableModel->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
 }
 
+/*
+ * Retrieves all of the income and expenses items that belong to a user.
+ *
+ * @param userID : the identifer for the user for which the QMap will return the information of.
+ *
+ * @return A QMap<QString, QStringList> object that contains all information belonging to the user.
+ *
+ * */
 QMap<QString,QStringList> TableOperations::getCategoryItems(QString userID)
 {
     jsonParser = new JsonParser(this);

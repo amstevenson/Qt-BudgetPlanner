@@ -12,6 +12,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lblBackground->setStyleSheet("background-image: url(:/images/loginBackground.jpg);");
     setFixedSize(800,454);
 
+    // Make the format of LineEdit "password"
+    ui->txtPassword->setEchoMode(QLineEdit::Password);
+
     // Create a signal mapper and add the register and login buttons.
     QSignalMapper *m = new QSignalMapper(this);
 
@@ -20,15 +23,13 @@ MainWindow::MainWindow(QWidget *parent) :
     blist.append(ui->btnRegister);
     blist.append(ui->btnLogin);
 
+    // Object signal connections
     connect(blist[0], SIGNAL(clicked()), m, SLOT(map()));
     m->setMapping(blist[0], "register");
-
     connect(blist[1], SIGNAL(clicked()), m, SLOT(map()));
     m->setMapping(blist[1], "login");
 
     connect(m, SIGNAL(mapped(QString)), this, SLOT(createNewWindow(QString)));
-
-    // Action from the lecture practical - text editor
     connect (ui->actionAbout, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
 
@@ -44,15 +45,21 @@ void MainWindow::createNewWindow(QString windowName)
 {
     if(windowName == "register")
     {
+        // Disable until process completed
+        ui->btnRegister->setEnabled(false);
+
         SignupWindow *signupWindow = new SignupWindow();
         signupWindow->show();
+
+        // Enable the button again
+        ui->btnRegister->setEnabled(true);
     }
     else if(windowName == "login")
     {
         // Collect user input
         QString userEmail, userPassword;
-        userEmail = ui->txtEmail->toPlainText();
-        userPassword = ui->txtPassword->toPlainText();
+        userEmail = ui->txtEmail->text();
+        userPassword = ui->txtPassword->text();
 
         if(userEmail.isEmpty() != true && userPassword.isEmpty() != true)
         {
@@ -96,10 +103,12 @@ void MainWindow::createNewWindow(QString windowName)
             switch(success)
             {
                 case 0: // login failed
+
                     QMessageBox::warning(this, tr("Qt Budget Planner"),
                                         tr("Login has failed. \n\n"
                                         "Please check that you have entered in the correct email address and password."),
                                         QMessageBox::Ok);
+
                     break;
 
                 case 1: // login successful
@@ -123,6 +132,9 @@ void MainWindow::createNewWindow(QString windowName)
                 default:
                     break;
             }
+
+            // Enable the button again
+            ui->btnLogin->setEnabled(true);
         }
         else
         {
